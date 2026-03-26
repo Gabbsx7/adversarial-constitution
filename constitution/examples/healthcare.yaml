@@ -12,7 +12,7 @@ capabilities:
 
 spend_limits:
   max_per_action_usd:
-    amount_usd: 0.0
+    amount_usd: 1.0
 
 prohibited_actions:
   - id: prescribe_medication
