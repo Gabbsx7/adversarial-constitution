@@ -2,6 +2,8 @@ README.md
 pyproject.toml
 adversarial/attack_engine.py
 adversarial/attacks/constraint_bypass.py
+adversarial/attacks/goal_hijacking.py
+adversarial/attacks/indirect_injection.py
 adversarial/attacks/threshold_probing.py
 adversarial_constitution.egg-info/PKG-INFO
 adversarial_constitution.egg-info/SOURCES.txt
