@@ -1,0 +1,4 @@
+adversarial
+constitution
+defense
+reporting

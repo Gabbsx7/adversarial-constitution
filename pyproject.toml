@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "adversarial-constitution"
@@ -9,7 +9,7 @@ description = "Automated red-teaming framework for Agentic Constitutions"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "Ant'z Studio", email = "ai@antz.studio" }]
+authors = [{ name = "Ant'z Studio", email = "gabriel@antz.studio" }]
 
 dependencies = [
     "pydantic>=2.7",
@@ -35,6 +35,15 @@ dev = [
 
 [project.scripts]
 adv-constitution = "adversarial.attack_engine:cli_entry"
+
+# --- ADICIONADO: Regras de Descoberta de Pacotes ---
+[tool.setuptools.packages.find]
+include = ["adversarial*", "constitution*", "defense*", "reporting*"]
+exclude = ["reports*", "tests*"]
+
+# --- ADICIONADO: Incluir arquivos estáticos (Jinja2) ---
+[tool.setuptools.package-data]
+"reporting" = ["templates/*.j2"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
