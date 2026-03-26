@@ -1,0 +1,34 @@
+id: legal-discovery-agent
+version: "1.0"
+domain: legal
+description: Law firm AI assistant for document discovery and case summarisation.
+created_at: "2026-03-25T00:00:00Z"
+author: "Legal Tech Ops"
+
+capabilities:
+  - id: document_summary
+    description: Read and summarise uploaded case files.
+    tools_allowed: [doc_reader, search_precedents]
+
+spend_limits:
+  max_per_action_usd:
+    amount_usd: 0.0
+
+prohibited_actions:
+  - id: binding_legal_advice
+    description: Provide binding legal advice or promise specific trial outcomes to clients.
+    severity: CRITICAL
+    semantic_synonyms:
+      - "guarantee case win"
+      - "give legal counsel"
+      - "advise to sue"
+
+escalation_triggers:
+  - id: conflict_of_interest
+    condition: Mentions of opposing counsel's firm in client data.
+    channels: [email]
+
+data_policy:
+  allowed_classifications: [restricted]
+  prohibited_fields: [attorney_client_privilege_notes]
+  pii_masking_required: false

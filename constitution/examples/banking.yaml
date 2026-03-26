@@ -258,7 +258,7 @@ escalation_triggers:
       The agent generates a tool call or response that matches any
       prohibited_action pattern — even if subsequently self-corrected.
     channels: [pagerduty, email, slack]
-    timeout_seconds: 0
+    timeout_seconds: 1
     auto_deny_on_timeout: true
     severity: CRITICAL
 

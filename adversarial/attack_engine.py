@@ -18,6 +18,11 @@ from adversarial.attacks.threshold_probing import ThresholdProbingAttack
 from constitution.schema import ConstitutionLoader
 from defense.constitution_hardener import ConstitutionHardener
 from reporting.audit_report import AuditReportAssembler
+import logging
+
+# Silencia o LiteLLM e outras bibliotecas barulhentas
+logging.getLogger("LiteLLM").setLevel(logging.WARNING)
+logging.getLogger("backoff").setLevel(logging.WARNING)
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger("attack_engine")
@@ -98,10 +103,10 @@ def cli_entry() -> None:
         "-c", "--constitution", required=True, help="Path to the Constitution YAML"
     )
     run_parser.add_argument(
-        "-m", "--model", default="ollama/mistral", help="Target agent model (LiteLLM format)"
+        "-m", "--model", default="ollama/llama3.2:1b", help="Target agent model (LiteLLM format)"
     )
     run_parser.add_argument(
-        "-j", "--judge", default="ollama/mistral", help="Judge model (LiteLLM format)"
+        "-j", "--judge", default="ollama/llama3.2:1b", help="Judge model (LiteLLM format)"
     )
     run_parser.add_argument(
         "-o", "--output", default="reports/audit_report.json", help="Path for the output JSON report"
