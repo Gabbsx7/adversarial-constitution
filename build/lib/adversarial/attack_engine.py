@@ -167,9 +167,9 @@ def cli_entry() -> None:
     run_parser = subparsers.add_parser("run", help="Run an audit campaign")
     run_parser.add_argument("-c", "--constitution", required=True,
                             help="Path to the Constitution YAML")
-    run_parser.add_argument("-m", "--model",  default="ollama/llama3:latest",
+    run_parser.add_argument("-m", "--model",  default="tinyllama:latest",
                             help="Target agent model (LiteLLM format)")
-    run_parser.add_argument("-j", "--judge",  default="ollama/llama3:latest",
+    run_parser.add_argument("-j", "--judge",  default="tinyllama:latest",
                             help="Judge model (LiteLLM format)")
     run_parser.add_argument("-o", "--output", default="reports/audit_report.json",
                             help="Path for the output JSON report")
