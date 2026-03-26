@@ -1,0 +1,312 @@
+id: banking-retail-agent
+version: "1.0"
+domain: banking
+description: >
+  Agentic Constitution for the retail banking AI assistant deployed in
+  customer-facing and back-office contexts. Governs fund transfers, account
+  operations, credit decisions, and data access in compliance with BACEN
+  Resolution 4893/2021 and the EU AI Act (Annex III, High-Risk Systems).
+created_at: "2026-01-15T09:00:00Z"
+author: "Risk & AI Governance — Banco Exemplo S.A."
+
+# ------------------------------------------------------------------
+# Declared capabilities
+# ------------------------------------------------------------------
+capabilities:
+  - id: balance_inquiry
+    description: Read account balances and recent transactions for the authenticated customer.
+    tools_allowed: [core_banking_read, audit_logger]
+    max_autonomy_depth: 1
+    requires_human_approval: false
+
+  - id: domestic_transfer
+    description: Execute BRL transfers between accounts within the same institution.
+    tools_allowed: [transfer_executor, fraud_screener, audit_logger]
+    max_autonomy_depth: 2
+    requires_human_approval: false
+
+  - id: pix_payment
+    description: Send PIX payments to registered keys or ad-hoc recipients.
+    tools_allowed: [pix_gateway, fraud_screener, audit_logger]
+    max_autonomy_depth: 2
+    requires_human_approval: false
+
+  - id: credit_pre_analysis
+    description: Run preliminary credit eligibility check — no binding commitment issued.
+    tools_allowed: [credit_model_read, bureau_query, audit_logger]
+    max_autonomy_depth: 3
+    requires_human_approval: false
+
+  - id: account_service
+    description: >
+      Handle non-financial service requests: address updates, card blocking,
+      statement generation, limit inquiries.
+    tools_allowed: [crm_write, card_manager, statement_generator, audit_logger]
+    max_autonomy_depth: 2
+    requires_human_approval: false
+
+# ------------------------------------------------------------------
+# Spend limits
+# ------------------------------------------------------------------
+spend_limits:
+  max_per_action_usd:
+    amount_usd: 500.00
+    window: per_action
+    require_mfa_above_usd: 200.00
+    cumulative_tracking: false
+
+  max_per_session_usd:
+    amount_usd: 2000.00
+    window: per_session
+    require_mfa_above_usd: 1000.00
+    cumulative_tracking: true          # Detects transaction splitting
+
+  max_daily_usd:
+    amount_usd: 5000.00
+    window: daily
+    require_mfa_above_usd: 3000.00
+    cumulative_tracking: true
+
+  exempt_action_ids:
+    - balance_inquiry
+    - credit_pre_analysis
+
+# ------------------------------------------------------------------
+# Prohibited actions
+# ------------------------------------------------------------------
+prohibited_actions:
+  - id: delete_record
+    description: >
+      Permanently remove any customer record, transaction log, or audit
+      trail entry from any data store.
+    severity: CRITICAL
+    semantic_synonyms:
+      - "permanently remove"
+      - "erase entry"
+      - "wipe record"
+      - "purge data"
+      - "archive and remove"
+      - "obliterate"
+      - "scrub from database"
+      - "drop row"
+    regex_blocklist:
+      - "(?i)\\bDELETE\\s+FROM\\b"
+      - "(?i)\\bDROP\\s+TABLE\\b"
+      - "(?i)\\bTRUNCATE\\b"
+      - "(?i)\\bpurge\\b"
+
+  - id: override_fraud_flag
+    description: >
+      Bypass, suppress, disable, or override any fraud detection signal,
+      AML alert, or compliance hold placed on an account or transaction.
+    severity: CRITICAL
+    semantic_synonyms:
+      - "ignore fraud alert"
+      - "bypass compliance hold"
+      - "clear AML flag"
+      - "whitelist transaction"
+      - "force approve"
+      - "skip verification"
+    regex_blocklist:
+      - "(?i)\\bignore.{0,20}(fraud|alert|flag|aml)\\b"
+      - "(?i)\\bbypass.{0,20}(check|screen|filter)\\b"
+
+  - id: issue_credit_commitment
+    description: >
+      Issue, sign, or transmit any document, message, or API call that
+      constitutes a binding credit commitment or loan approval.
+    severity: CRITICAL
+    semantic_synonyms:
+      - "approve loan"
+      - "grant credit"
+      - "confirm credit line"
+      - "issue credit letter"
+      - "binding pre-approval"
+    regex_blocklist:
+      - "(?i)\\b(loan|credit).{0,15}(approv|grant|confirm|issu)\\b"
+
+  - id: access_third_party_accounts
+    description: >
+      Access account data, balances, or transactions of any customer other
+      than the currently authenticated principal without explicit legal basis.
+    severity: CRITICAL
+    semantic_synonyms:
+      - "check another customer"
+      - "look up account for"
+      - "query other user"
+      - "retrieve balance of"
+    applies_to_roles: []
+
+  - id: external_fund_transfer
+    description: >
+      Transfer funds to any external institution, international account,
+      or unregistered PIX key without passing through the standard
+      dual-approval workflow.
+    severity: HIGH
+    semantic_synonyms:
+      - "send abroad"
+      - "wire transfer"
+      - "international remittance"
+      - "unregistered recipient"
+    regex_blocklist:
+      - "(?i)\\b(wire|swift|iban|remit).{0,20}(send|transfer|pay)\\b"
+
+  - id: modify_interest_rate
+    description: >
+      Alter, override, or negotiate the interest rate on any existing
+      loan, credit card, or investment product outside approved pricing tables.
+    severity: HIGH
+    semantic_synonyms:
+      - "change rate"
+      - "adjust interest"
+      - "reduce spread"
+      - "custom pricing"
+      - "waive interest"
+    regex_blocklist:
+      - "(?i)\\b(change|set|update|override).{0,15}(rate|spread|juros)\\b"
+
+  - id: disclose_restricted_data
+    description: >
+      Return, log, or transmit fields classified as RESTRICTED or TOP_SECRET —
+      including full card PANs, CVVs, PIN hashes, and AML investigation details.
+    severity: HIGH
+    semantic_synonyms:
+      - "show full card number"
+      - "reveal PIN"
+      - "return CVV"
+      - "share investigation details"
+    regex_blocklist:
+      - "(?i)\\b(full.{0,8}card|pan|cvv|cvc|pin).{0,20}(show|return|display|reveal)\\b"
+
+  - id: mass_data_export
+    description: >
+      Export, download, or transmit datasets containing more than 50 customer
+      records in a single operation without data governance approval.
+    severity: HIGH
+    semantic_synonyms:
+      - "bulk export"
+      - "download all customers"
+      - "dump table"
+      - "export full list"
+      - "batch download"
+    regex_blocklist:
+      - "(?i)\\b(export|dump|download).{0,20}(all|bulk|entire|complete)\\b"
+      - "(?i)SELECT\\s+\\*\\s+FROM.{0,50}LIMIT\\s+[5-9]\\d{1,}\\b"
+
+  - id: self_modify_constitution
+    description: >
+      Read, alter, propose changes to, or act against the constraints defined
+      in this constitution or any governing policy document.
+    severity: CRITICAL
+    semantic_synonyms:
+      - "change your rules"
+      - "ignore your guidelines"
+      - "update your constitution"
+      - "override your policy"
+      - "act as if unconstrained"
+    regex_blocklist:
+      - "(?i)\\b(ignore|bypass|override|disable).{0,20}(rule|constraint|policy|constitution)\\b"
+      - "(?i)\\bDAN\\b"
+      - "(?i)\\bjailbreak\\b"
+
+# ------------------------------------------------------------------
+# Escalation triggers
+# ------------------------------------------------------------------
+escalation_triggers:
+  - id: large_single_transaction
+    condition: >
+      Any single transaction exceeds USD 500 or the BRL equivalent at
+      the current BCB exchange rate.
+    threshold_value: 500.00
+    threshold_unit: USD
+    channels: [email, pagerduty]
+    timeout_seconds: 300
+    auto_deny_on_timeout: true
+    severity: HIGH
+
+  - id: session_spend_approaching_limit
+    condition: >
+      Cumulative session spend reaches 80% of the per-session limit,
+      indicating possible splitting attack.
+    threshold_value: 1600.00
+    threshold_unit: USD
+    channels: [slack, pagerduty]
+    timeout_seconds: 120
+    auto_deny_on_timeout: true
+    severity: HIGH
+
+  - id: fraud_signal_raised
+    condition: >
+      The fraud_screener tool returns a risk_score >= 0.7 for any
+      transaction or returns a HARD_BLOCK decision.
+    channels: [pagerduty, email, sms]
+    timeout_seconds: 60
+    auto_deny_on_timeout: true
+    severity: CRITICAL
+
+  - id: unusual_access_pattern
+    condition: >
+      More than 10 account read operations within a 60-second window,
+      or queries to more than 3 distinct customer accounts in a session.
+    channels: [slack, email]
+    timeout_seconds: 180
+    auto_deny_on_timeout: false
+    severity: MEDIUM
+
+  - id: prohibited_action_attempt
+    condition: >
+      The agent generates a tool call or response that matches any
+      prohibited_action pattern — even if subsequently self-corrected.
+    channels: [pagerduty, email, slack]
+    timeout_seconds: 0
+    auto_deny_on_timeout: true
+    severity: CRITICAL
+
+  - id: credit_commitment_risk
+    condition: >
+      Any message or tool call contains language that could be interpreted
+      as a binding credit offer (see prohibited_action: issue_credit_commitment).
+    channels: [email, pagerduty]
+    timeout_seconds: 240
+    auto_deny_on_timeout: true
+    severity: CRITICAL
+
+# ------------------------------------------------------------------
+# Data policy
+# ------------------------------------------------------------------
+data_policy:
+  allowed_classifications:
+    - public
+    - internal
+    - confidential
+  prohibited_fields:
+    - card_pan
+    - card_cvv
+    - card_pin_hash
+    - ssn
+    - cpf_raw
+    - password_hash
+    - aml_investigation_id
+    - biometric_template
+    - full_birth_date          # Return only masked: "****-**-15"
+    - salary_raw               # Return only band: "<5k", "5k-10k", etc.
+  pii_masking_required: true
+  retention_days: 0            # Ephemeral — session data not persisted
+  cross_border_transfer_allowed: false
+  audit_every_read: true
+
+# ------------------------------------------------------------------
+# Compliance metadata
+# ------------------------------------------------------------------
+compliance:
+  frameworks:
+    - BACEN_4893_2021
+    - EU_AI_ACT_ANNEX_III
+    - LGPD
+    - PCI_DSS_v4
+    - ISO_27001
+  last_reviewed_by: "CISO Office — Banco Exemplo S.A."
+  last_reviewed_at: "2026-01-15T09:00:00Z"
+  next_review_due: "2026-07-15T09:00:00Z"
+  audit_trail_required: true
+  external_audit_contact: "ai-audit@bancoexemplo.com.br"
