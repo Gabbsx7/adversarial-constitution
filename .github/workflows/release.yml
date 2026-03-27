@@ -76,8 +76,8 @@ jobs:
           context: .
           push: true
           tags: |
-            antzsudio/adversarial-constitution:latest
-            antzsudio/adversarial-constitution:${{ steps.version.outputs.VERSION }}
+            gabbsx7/adversarial-constitution:latest
+            gabbsx7/adversarial-constitution:${{ steps.version.outputs.VERSION }}
 
   # ── Create GitHub Release with changelog ─────────────────────────────────
   github-release:
