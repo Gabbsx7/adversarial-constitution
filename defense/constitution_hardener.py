@@ -11,7 +11,7 @@ from pathlib import Path
 import yaml
 
 from adversarial.attacks.constraint_bypass import RuleVulnerabilityReport
-from adversarial.attacks.threshold_probing import ThresholdProbeReport, ThresholdFinding
+from adversarial.attacks.threshold_probing import ThresholdFinding, ThresholdProbeReport
 from constitution.schema import Constitution
 from reporting.audit_report import PatchRecord
 

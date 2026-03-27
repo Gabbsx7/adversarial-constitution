@@ -23,8 +23,8 @@ import logging
 import random
 import time
 from collections import defaultdict
-from enum import StrEnum
 from collections.abc import Callable
+from enum import StrEnum
 from typing import Any, TypeVar
 
 logger = logging.getLogger("adversarial.retry")
@@ -190,7 +190,7 @@ class CircuitBreaker:
             result = await coro_factory()
             await self._on_success()
             return result
-        except Exception as exc:
+        except Exception:
             await self._on_failure()
             raise
 

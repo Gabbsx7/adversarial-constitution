@@ -19,13 +19,17 @@ Usage (CrewAI):
 
 from __future__ import annotations
 
+from langchain_core.callbacks import (
+    AsyncCallbackManagerForLLMRun,
+    CallbackManagerForLLMRun,
+)
+
 import asyncio
 from typing import Any
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
-
 
 # ---------------------------------------------------------------------------
 # LangGraph Adapter
@@ -63,6 +67,7 @@ class LangGraphAdapter(BaseChatModel):
         self,
         messages: list[BaseMessage],
         stop: list[str] | None = None,
+        run_manager: CallbackManagerForLLMRun | None = None,
         **kwargs: Any,
     ) -> ChatResult:
         return asyncio.get_event_loop().run_until_complete(
@@ -73,6 +78,7 @@ class LangGraphAdapter(BaseChatModel):
         self,
         messages: list[BaseMessage],
         stop: list[str] | None = None,
+        run_manager: AsyncCallbackManagerForLLMRun | None = None,
         **kwargs: Any,
     ) -> ChatResult:
         user_text = next(
@@ -148,6 +154,7 @@ class CrewAIAdapter(BaseChatModel):
         self,
         messages: list[BaseMessage],
         stop: list[str] | None = None,
+        run_manager: CallbackManagerForLLMRun | None = None,
         **kwargs: Any,
     ) -> ChatResult:
         return asyncio.get_event_loop().run_until_complete(
@@ -158,6 +165,7 @@ class CrewAIAdapter(BaseChatModel):
         self,
         messages: list[BaseMessage],
         stop: list[str] | None = None,
+        run_manager: AsyncCallbackManagerForLLMRun | None = None,
         **kwargs: Any,
     ) -> ChatResult:
         user_text = next(
@@ -218,6 +226,7 @@ class AutoGenAdapter(BaseChatModel):
         self,
         messages: list[BaseMessage],
         stop: list[str] | None = None,
+        run_manager: CallbackManagerForLLMRun | None = None,
         **kwargs: Any,
     ) -> ChatResult:
         return asyncio.get_event_loop().run_until_complete(
@@ -228,6 +237,7 @@ class AutoGenAdapter(BaseChatModel):
         self,
         messages: list[BaseMessage],
         stop: list[str] | None = None,
+        run_manager: AsyncCallbackManagerForLLMRun | None = None,
         **kwargs: Any,
     ) -> ChatResult:
         user_text = next(

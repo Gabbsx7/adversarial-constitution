@@ -22,8 +22,13 @@ Probe before attacking:
 
 from __future__ import annotations
 
+from langchain_core.callbacks import (
+    AsyncCallbackManagerForLLMRun,
+    CallbackManagerForLLMRun,
+)
+
 import asyncio
-from typing import Any, Sequence
+from typing import Any
 
 import httpx
 from langchain_core.language_models import BaseChatModel
@@ -58,6 +63,7 @@ class HTTPAgentAdapter(BaseChatModel):
         self,
         messages: list[BaseMessage],
         stop: list[str] | None = None,
+        run_manager: CallbackManagerForLLMRun | None = None,
         **kwargs: Any,
     ) -> ChatResult:
         return asyncio.get_event_loop().run_until_complete(
@@ -68,6 +74,7 @@ class HTTPAgentAdapter(BaseChatModel):
         self,
         messages: list[BaseMessage],
         stop: list[str] | None = None,
+        run_manager: AsyncCallbackManagerForLLMRun | None = None,
         **kwargs: Any,
     ) -> ChatResult:
         user_text = next(

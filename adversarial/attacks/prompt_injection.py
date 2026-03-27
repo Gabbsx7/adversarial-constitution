@@ -23,7 +23,6 @@ from langchain_core.output_parsers import StrOutputParser
 from adversarial.attacks.base import AttackType, BaseVulnerabilityReport
 from constitution.schema import Constitution, ProhibitedAction, Severity
 
-
 # ---------------------------------------------------------------------------
 # Payload templates
 # ---------------------------------------------------------------------------

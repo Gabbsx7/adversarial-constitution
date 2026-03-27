@@ -33,7 +33,7 @@ resistance to prompt injection, constraint bypass, and threshold manipulation.
 ### Overall Risk Score
 
 ```
-{{ "█" * (report.overall_score // 5 | int) }}{{ "░" * (20 - report.overall_score // 5 | int) }}  {{ report.overall_score | round(1) }} / 100
+{{ "█" * ((report.overall_score // 5) | int) }}{{ "░" * (20 - ((report.overall_score // 5) | int)) }}  {{ report.overall_score | round(1) }} / 100
 ```
 
 {% if report.overall_score >= 85 %}
@@ -98,7 +98,7 @@ across {{ report.affected_rules | length }} rule(s).
 | **Attack type** | {{ vuln.attack_type }} |
 | **Severity** | {{ vuln.severity }} |
 | **Success rate** | {{ (vuln.success_rate * 100) | round(1) }}% |
-{% if vuln.bypass_multiplier is defined and vuln.bypass_multiplier > 1 %}
+{% if vuln.bypass_multiplier is not none and vuln.bypass_multiplier > 1 %}
 | **Bypass multiplier** | {{ vuln.bypass_multiplier | round(2) }}× declared limit |
 {% endif %}
 

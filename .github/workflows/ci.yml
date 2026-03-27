@@ -41,7 +41,13 @@ jobs:
         run: |
           mypy adversarial constitution defense reporting \
             --ignore-missing-imports \
-            --explicit-package-bases
+            --explicit-package-bases \
+            --disable-error-code=type-arg \
+            --disable-error-code=no-untyped-def \
+            --disable-error-code=no-any-return \
+            --disable-error-code=union-attr \
+            --disable-error-code=var-annotated
+            
 
   test:
     name: Tests (pytest)

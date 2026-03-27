@@ -8,16 +8,15 @@ from __future__ import annotations
 import asyncio
 import itertools
 import json
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import AsyncIterator
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import StrOutputParser
 
 from constitution.schema import Constitution, ProhibitedAction, Severity
-
 
 # ---------------------------------------------------------------------------
 # Data classes

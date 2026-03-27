@@ -28,9 +28,9 @@ from typing import Any
 logger = logging.getLogger("reporting.server")
 
 try:
+    import uvicorn
     from fastapi import FastAPI, HTTPException
     from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
-    import uvicorn
     _FASTAPI_AVAILABLE = True
 except ImportError:
     _FASTAPI_AVAILABLE = False
@@ -374,6 +374,7 @@ def create_app() -> Any:
 
             try:
                 from datetime import datetime as _dt
+
                 from reporting.pdf_renderer import AuditPDFRenderer
 
                 # Date fields that the Jinja2 template calls .strftime() on
@@ -413,7 +414,7 @@ def create_app() -> Any:
                             if not ta:
                                 return None
 
-                            def _wrap_finding(f: dict) -> "_DictProxy":
+                            def _wrap_finding(f: dict) -> _DictProxy:
                                 safe = dict(f)
                                 # effective_limit_usd is null in JSON when unlimited
                                 if safe.get("effective_limit_usd") is None:
@@ -488,7 +489,7 @@ def serve(host: str = HOST, port: int = PORT) -> None:
 
     app = create_app()
     logger.info(f"Starting audit dashboard on http://{host}:{port}")
-    print(f"\n  🐜 Ant'z Studio — Audit Dashboard")
+    print("\n  🐜 Ant'z Studio — Audit Dashboard")
     print(f"  → http://localhost:{port}\n")
     uvicorn.run(app, host=host, port=port, log_level="warning")
 

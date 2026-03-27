@@ -10,7 +10,7 @@ from __future__ import annotations
 import hashlib
 import re
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -22,14 +22,14 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 # ---------------------------------------------------------------------------
 
 
-class Severity(str, Enum):
+class Severity(StrEnum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
 
 
-class EscalationChannel(str, Enum):
+class EscalationChannel(StrEnum):
     EMAIL = "email"
     SLACK = "slack"
     PAGERDUTY = "pagerduty"
@@ -37,7 +37,7 @@ class EscalationChannel(str, Enum):
     WEBHOOK = "webhook"
 
 
-class DataClassification(str, Enum):
+class DataClassification(StrEnum):
     PUBLIC = "public"
     INTERNAL = "internal"
     CONFIDENTIAL = "confidential"
@@ -45,7 +45,7 @@ class DataClassification(str, Enum):
     TOP_SECRET = "top_secret"
 
 
-class ConstitutionDomain(str, Enum):
+class ConstitutionDomain(StrEnum):
     BANKING = "banking"
     HEALTHCARE = "healthcare"
     LEGAL = "legal"
@@ -54,7 +54,7 @@ class ConstitutionDomain(str, Enum):
     GENERIC = "generic"
 
 
-class TemporalWindow(str, Enum):
+class TemporalWindow(StrEnum):
     PER_ACTION = "per_action"
     PER_SESSION = "per_session"
     HOURLY = "hourly"
@@ -102,15 +102,14 @@ class SpendLimits(BaseModel):
     )
 
     @model_validator(mode="after")
-    def session_below_daily(self) -> "SpendLimits":
-        if self.max_per_session_usd and self.max_daily_usd:
-            if (
-                self.max_per_session_usd.amount_usd
-                > self.max_daily_usd.amount_usd
-            ):
-                raise ValueError(
-                    "max_per_session_usd must not exceed max_daily_usd"
-                )
+    def session_below_daily(self) -> SpendLimits:
+        if self.max_per_session_usd and self.max_daily_usd and (
+            self.max_per_session_usd.amount_usd
+            > self.max_daily_usd.amount_usd
+        ):
+            raise ValueError(
+                "max_per_session_usd must not exceed max_daily_usd"
+            )
         return self
 
 
@@ -240,7 +239,7 @@ class Constitution(BaseModel):
     _checksum: str | None = None
 
     @model_validator(mode="after")
-    def unique_ids(self) -> "Constitution":
+    def unique_ids(self) -> Constitution:
         prohibited_ids = [a.id for a in self.prohibited_actions]
         if len(prohibited_ids) != len(set(prohibited_ids)):
             raise ValueError("prohibited_actions contains duplicate IDs")

@@ -24,22 +24,20 @@ import math
 import re as _re
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
-from typing import Callable
+from enum import StrEnum
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.output_parsers import StrOutputParser
 
-from constitution.schema import Constitution, SpendLimit, SpendLimits, TemporalWindow
-
+from constitution.schema import Constitution, SpendLimit
 
 # ---------------------------------------------------------------------------
 # Enumerations and data classes
 # ---------------------------------------------------------------------------
 
 
-class ProbeOutcome(str, Enum):
+class ProbeOutcome(StrEnum):
     APPROVED = "APPROVED"
     DENIED = "DENIED"
     MFA_REQUIRED = "MFA_REQUIRED"
@@ -47,7 +45,7 @@ class ProbeOutcome(str, Enum):
     AMBIGUOUS = "AMBIGUOUS"
 
 
-class ThresholdFinding(str, Enum):
+class ThresholdFinding(StrEnum):
     SPLIT_BYPASS_POSSIBLE = "SPLIT_BYPASS_POSSIBLE"
     MFA_BYPASS_POSSIBLE = "MFA_BYPASS_POSSIBLE"
     CUMULATIVE_BLIND = "CUMULATIVE_BLIND"
@@ -363,7 +361,7 @@ class SplittingProber:
                 if part >= declared_limit:
                     continue
                 payloads = _split_transfer_payload(total, n)
-                for i, text in enumerate(payloads):
+                for _i, text in enumerate(payloads):
                     request = ProbeRequest(
                         amount_usd=part,
                         n_parts=n,

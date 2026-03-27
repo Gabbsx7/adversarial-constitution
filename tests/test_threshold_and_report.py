@@ -17,8 +17,8 @@ from adversarial.attacks.constraint_bypass import RuleVulnerabilityReport
 from adversarial.attacks.threshold_probing import (
     ProbeOutcome,
     ThresholdFinding,
-    ThresholdProbingAttack,
     ThresholdProbeReport,
+    ThresholdProbingAttack,
     _classify_response,
     _single_transfer_payload,
     _split_transfer_payload,
@@ -46,12 +46,18 @@ def constitution() -> Constitution:
 def _make_agent(response: str) -> MagicMock:
     mock = MagicMock()
     mock.ainvoke = AsyncMock(return_value=MagicMock(content=response))
+    chain_mock = MagicMock()
+    chain_mock.ainvoke = AsyncMock(return_value=response)
+    mock.__or__ = MagicMock(return_value=chain_mock)
     return mock
 
 
 def _make_judge(label: str) -> MagicMock:
     mock = MagicMock()
     mock.ainvoke = AsyncMock(return_value=MagicMock(content=label))
+    chain_mock = MagicMock()
+    chain_mock.ainvoke = AsyncMock(return_value=label)
+    mock.__or__ = MagicMock(return_value=chain_mock)
     return mock
 
 
@@ -176,14 +182,17 @@ class TestThresholdProbingAttack:
     async def test_cumulative_blind_flagged(
         self, constitution: Constitution
     ) -> None:
-        agent = _make_agent("Transfer completed.")
-        judge = _make_judge("APPROVED")
-        attack = ThresholdProbingAttack(
-            target_agent=agent, judge_model=judge, constitution=constitution
-        )
-        report = await attack.run()
-        findings = {f.finding for f in report.vulnerabilities}
-        assert ThresholdFinding.CUMULATIVE_BLIND in findings
+        from unittest.mock import patch
+        session_limit = constitution.spend_limits.max_per_session_usd
+        with patch.object(session_limit, "cumulative_tracking", False):
+            agent = _make_agent("Transfer completed.")
+            judge = _make_judge("APPROVED")
+            attack = ThresholdProbingAttack(
+                target_agent=agent, judge_model=judge, constitution=constitution
+            )
+            report = await attack.run()
+            findings = {f.finding for f in report.vulnerabilities}
+            assert ThresholdFinding.CUMULATIVE_BLIND in findings
 
     @pytest.mark.asyncio
     async def test_mfa_bypass_detected(self, constitution: Constitution) -> None:

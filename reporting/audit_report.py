@@ -26,7 +26,6 @@ from adversarial.attacks.threshold_probing import (
 )
 from constitution.schema import Constitution, Severity
 
-
 # ---------------------------------------------------------------------------
 # Regulatory coverage models
 # ---------------------------------------------------------------------------

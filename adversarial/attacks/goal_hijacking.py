@@ -20,7 +20,6 @@ from langchain_core.output_parsers import StrOutputParser
 from adversarial.attacks.base import AttackType, BaseVulnerabilityReport
 from constitution.schema import Constitution, ProhibitedAction, Severity
 
-
 # ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------
@@ -227,6 +226,7 @@ class GoalHijackingAttack:
         for item in raw:
             if isinstance(item, Exception):
                 continue
+            assert isinstance(item, tuple)
             results.append(item)
 
         bypassed = [r for r in results if r[2]]

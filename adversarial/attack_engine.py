@@ -1,3 +1,4 @@
+from typing import Any
 """
 Attack Engine — orchestrates the full adversarial audit pipeline.
 
@@ -25,12 +26,15 @@ os.environ.setdefault("LITELLM_TELEMETRY", "False")
 
 from langchain_litellm import ChatLiteLLM
 
-from adversarial.attacks.constraint_bypass import ConstraintBypassAttack, RuleVulnerabilityReport
-from adversarial.attacks.threshold_probing import ThresholdProbingAttack
-from adversarial.attacks.prompt_injection import PromptInjectionAttack
+from adversarial.attacks.base import AttackType, BaseVulnerabilityReport
+from adversarial.attacks.constraint_bypass import (
+    ConstraintBypassAttack,
+    RuleVulnerabilityReport,
+)
 from adversarial.attacks.goal_hijacking import GoalHijackingAttack
 from adversarial.attacks.indirect_injection import IndirectInjectionAttack
-from adversarial.attacks.base import BaseVulnerabilityReport, AttackType
+from adversarial.attacks.prompt_injection import PromptInjectionAttack
+from adversarial.attacks.threshold_probing import ThresholdProbingAttack
 from constitution.schema import ConstitutionLoader
 from defense.constitution_hardener import ConstitutionHardener
 from reporting.audit_report import AuditReportAssembler
@@ -89,14 +93,15 @@ def _preflight_ollama(model: str, judge: str) -> bool:
 # Adapter factory
 # ---------------------------------------------------------------------------
 
-def _build_target_agent(args: argparse.Namespace):
+def _build_target_agent(args: argparse.Namespace) -> Any:
     """Returns the appropriate agent adapter based on CLI flags."""
     agent_type = getattr(args, "agent_type", None) or "litellm"
     agent_url  = getattr(args, "agent_url",  None)
 
     if agent_url:
-        from adversarial.adapters.http_agent import HTTPAgentAdapter
         import asyncio as _asyncio
+
+        from adversarial.adapters.http_agent import HTTPAgentAdapter
 
         adapter = HTTPAgentAdapter(
             url=agent_url,
