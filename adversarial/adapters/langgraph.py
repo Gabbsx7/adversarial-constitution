@@ -19,14 +19,13 @@ Usage (CrewAI):
 
 from __future__ import annotations
 
+import asyncio
+from typing import Any
+
 from langchain_core.callbacks import (
     AsyncCallbackManagerForLLMRun,
     CallbackManagerForLLMRun,
 )
-
-import asyncio
-from typing import Any
-
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from langchain_core.outputs import ChatGeneration, ChatResult

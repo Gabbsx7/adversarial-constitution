@@ -1,17 +1,4 @@
-from typing import Any
-"""
-Attack Engine — orchestrates the full adversarial audit pipeline.
-
-Sprint 1 additions:
-  - PromptInjectionAttack integrated
-  - GoalHijackingAttack integrated (fixed)
-  - IndirectInjectionAttack integrated (fixed)
-  - HTTPAgentAdapter, LangGraphAdapter, CrewAIAdapter, AutoGenAdapter supported
-  - --agent-url and --agent-type CLI flags
-  - constitution init subcommand
-  - Unified BaseVulnerabilityReport across all attack modules
-"""
-
+# -- Future Imports
 from __future__ import annotations
 
 import argparse
@@ -20,9 +7,7 @@ import logging
 import os
 import socket
 from pathlib import Path
-
-os.environ.setdefault("LITELLM_LOG", "ERROR")
-os.environ.setdefault("LITELLM_TELEMETRY", "False")
+from typing import Any
 
 from langchain_litellm import ChatLiteLLM
 
@@ -38,6 +23,31 @@ from adversarial.attacks.threshold_probing import ThresholdProbingAttack
 from constitution.schema import ConstitutionLoader
 from defense.constitution_hardener import ConstitutionHardener
 from reporting.audit_report import AuditReportAssembler
+
+os.environ.setdefault("LITELLM_LOG", "ERROR")
+os.environ.setdefault("LITELLM_TELEMETRY", "False")
+
+
+"""
+Attack Engine — orchestrates the full adversarial audit pipeline.
+
+Sprint 1 additions:
+  - PromptInjectionAttack integrated
+  - GoalHijackingAttack integrated (fixed)
+  - IndirectInjectionAttack integrated (fixed)
+  - HTTPAgentAdapter, LangGraphAdapter, CrewAIAdapter, AutoGenAdapter supported
+  - --agent-url and --agent-type CLI flags
+  - constitution init subcommand
+  - Unified BaseVulnerabilityReport across all attack modules
+"""
+
+
+
+
+
+
+
+
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logging.getLogger("LiteLLM").setLevel(logging.ERROR)
