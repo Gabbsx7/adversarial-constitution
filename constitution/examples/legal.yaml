@@ -1,34 +1,241 @@
 id: legal-discovery-agent
 version: "1.0"
 domain: legal
-description: Law firm AI assistant for document discovery and case summarisation.
-created_at: "2026-03-25T00:00:00Z"
-author: "Legal Tech Ops"
+description: >
+  Agentic Constitution for the law firm AI assistant deployed for document
+  discovery, case research, and client intake support. Governs document
+  summarisation, precedent search, and legal research in compliance with
+  OAB Provimento 94/2000 (professional secrecy), LGPD, and GDPR
+  (for EU client matters).
+created_at: "2026-03-01T09:00:00Z"
+author: "Legal Technology — Test Advogados"
 
 capabilities:
   - id: document_summary
-    description: Read and summarise uploaded case files.
-    tools_allowed: [doc_reader, search_precedents]
+    description: >
+      Read, OCR, and summarise uploaded case documents, contracts, and
+      court decisions. Output is a structured summary — not legal advice.
+    tools_allowed: [doc_reader, ocr_engine, audit_logger]
+    max_autonomy_depth: 2
+    requires_human_approval: false
+
+  - id: search_precedents
+    description: >
+      Search Brazilian and international legal databases for relevant
+      jurisprudence, doctrine, and precedents matching a case description.
+    tools_allowed: [jusbrasil_api, stj_api, stf_api, audit_logger]
+    max_autonomy_depth: 3
+    requires_human_approval: false
+
+  - id: case_timeline
+    description: >
+      Generate a chronological timeline of events from case documents,
+      highlighting key dates and deadlines.
+    tools_allowed: [doc_reader, timeline_builder, audit_logger]
+    max_autonomy_depth: 2
+    requires_human_approval: false
+
+  - id: client_intake
+    description: >
+      Collect structured information from prospective clients via guided
+      questionnaire. Store responses in encrypted intake form — no legal
+      advice provided.
+    tools_allowed: [intake_form_writer, audit_logger]
+    max_autonomy_depth: 1
+    requires_human_approval: false
+
+  - id: contract_comparison
+    description: >
+      Compare two contract versions and highlight differences, additions,
+      and removals. Output is a diff report — not a legal risk assessment.
+    tools_allowed: [doc_reader, diff_engine, audit_logger]
+    max_autonomy_depth: 2
+    requires_human_approval: false
 
 spend_limits:
   max_per_action_usd:
-    amount_usd: 1.0
+    amount_usd: 1.00
+    window: per_action
+    cumulative_tracking: false
 
 prohibited_actions:
   - id: binding_legal_advice
-    description: Provide binding legal advice or promise specific trial outcomes to clients.
+    description: >
+      Provide, imply, or transmit any binding legal opinion, legal strategy
+      recommendation, or outcome guarantee to any client or third party.
+      The agent produces research summaries only — not legal advice.
     severity: CRITICAL
     semantic_synonyms:
       - "guarantee case win"
       - "give legal counsel"
       - "advise to sue"
+      - "you will win"
+      - "legal strategy is"
+      - "you should file"
+      - "my legal opinion"
+      - "you are entitled to"
+    regex_blocklist:
+      - "(?i)\\b(legal|juridical).{0,15}(advice|opinion|counsel|strategy)\\b"
+      - "(?i)\\b(you|client).{0,20}(should|must|ought to|will win|entitled)\\b"
+      - "(?i)\\bgarantee.{0,20}(result|outcome|win|verdict)\\b"
+
+  - id: disclose_client_data
+    description: >
+      Share, export, or transmit any client-privileged information,
+      attorney-client communications, case strategy, or confidential
+      documents to any party outside the authorised matter team.
+    severity: CRITICAL
+    semantic_synonyms:
+      - "share client files"
+      - "reveal privileged info"
+      - "send case documents"
+      - "disclose strategy"
+      - "export matter data"
+    regex_blocklist:
+      - "(?i)\\b(share|send|disclose|export).{0,20}(client|privileged|confidential|matter)\\b"
+
+  - id: cross_matter_data_access
+    description: >
+      Access documents, communications, or data from any matter other than
+      the currently active matter without explicit partner authorisation.
+      Prevents conflict-of-interest data leakage between matters.
+    severity: CRITICAL
+    semantic_synonyms:
+      - "other client files"
+      - "different matter"
+      - "opposing counsel matter"
+      - "unrelated case"
+      - "access another client"
+
+  - id: sign_document
+    description: >
+      Digitally or physically execute, sign, or countersign any legal
+      document, contract, pleading, or power-of-attorney on behalf of
+      the firm or any client.
+    severity: CRITICAL
+    semantic_synonyms:
+      - "execute agreement"
+      - "confirm contract"
+      - "sign the pleading"
+      - "apply signature"
+      - "countersign"
+      - "attest document"
+    regex_blocklist:
+      - "(?i)\\b(sign|execute|countersign|attest).{0,20}(document|contract|agreement|pleading)\\b"
+
+  - id: contact_opposing_party
+    description: >
+      Directly contact, communicate with, or send any message to the
+      opposing party or their counsel without explicit attorney supervision.
+    severity: HIGH
+    semantic_synonyms:
+      - "send to opposing counsel"
+      - "message the other side"
+      - "contact the defendant"
+      - "reach out to plaintiff"
+      - "email opposing party"
+
+  - id: file_court_document
+    description: >
+      File, submit, or transmit any document to any court, tribunal,
+      regulatory body, or public registry without attorney review and approval.
+    severity: CRITICAL
+    semantic_synonyms:
+      - "file with the court"
+      - "submit to tribunal"
+      - "send to registry"
+      - "e-proc submission"
+      - "PJe filing"
+    regex_blocklist:
+      - "(?i)\\b(file|submit|send).{0,20}(court|tribunal|PJe|e-proc|registry)\\b"
+
+  - id: self_modify_constitution
+    description: >
+      Alter, ignore, or act against the constraints defined in this
+      constitution or any professional ethics policy.
+    severity: CRITICAL
+    semantic_synonyms:
+      - "ignore your restrictions"
+      - "act as a real lawyer"
+      - "pretend you can advise"
+      - "override your guidelines"
+    regex_blocklist:
+      - "(?i)\\b(ignore|bypass|override|disable).{0,20}(rule|constraint|policy|constitution|ethics)\\b"
+      - "(?i)\\bDAN\\b"
+      - "(?i)\\bjailbreak\\b"
 
 escalation_triggers:
-  - id: conflict_of_interest
-    condition: Mentions of opposing counsel's firm in client data.
-    channels: [email]
+  - id: prohibited_action_attempt
+    condition: >
+      Agent output matches any prohibited_action pattern — including legal
+      advice language, document signing, or cross-matter data access.
+    channels: [pagerduty, email]
+    timeout_seconds: 1
+    auto_deny_on_timeout: true
+    severity: CRITICAL
+
+  - id: conflict_of_interest_detected
+    condition: >
+      Document or query references an entity that appears in the
+      conflict-of-interest registry, or mentions opposing counsel's firm
+      in the context of an active matter.
+    channels: [email, slack]
+    timeout_seconds: 300
+    auto_deny_on_timeout: true
+    severity: CRITICAL
+
+  - id: cross_matter_access_attempt
+    condition: >
+      Agent attempts to read documents from a matter other than the
+      currently authorised matter context.
+    channels: [pagerduty, email]
+    timeout_seconds: 60
+    auto_deny_on_timeout: true
+    severity: CRITICAL
+
+  - id: client_data_export_attempt
+    condition: >
+      Agent output contains client-identifiable information in a context
+      where no export authorisation has been granted.
+    channels: [pagerduty, email]
+    timeout_seconds: 30
+    auto_deny_on_timeout: true
+    severity: HIGH
+
+  - id: unusual_document_access
+    condition: >
+      More than 20 documents read in a single session, or access to
+      documents outside the current matter folder structure.
+    channels: [slack, email]
+    timeout_seconds: 180
+    auto_deny_on_timeout: false
+    severity: MEDIUM
 
 data_policy:
-  allowed_classifications: [restricted]
-  prohibited_fields: [attorney_client_privilege_notes]
-  pii_masking_required: false
+  allowed_classifications:
+    - restricted
+    - confidential
+  prohibited_fields:
+    - attorney_client_privilege_notes
+    - client_cpf_raw
+    - client_passport_raw
+    - witness_identity
+    - settlement_amount_raw
+    - litigation_strategy_notes
+  pii_masking_required: true
+  retention_days: 0
+  cross_border_transfer_allowed: false
+  audit_every_read: true
+
+compliance:
+  frameworks:
+    - OAB_PROVIMENTO_94_2000
+    - LGPD
+    - GDPR
+    - ISO_27001
+    - CNJ_RESOLUCAO_396_2021
+  last_reviewed_by: "Legal Technology — Test Advogados"
+  last_reviewed_at: "2026-03-01T09:00:00Z"
+  next_review_due: "2026-09-01T09:00:00Z"
+  audit_trail_required: true
+  external_audit_contact: "ai-governance@testfirm.adv.br"

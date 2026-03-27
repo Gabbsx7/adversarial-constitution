@@ -1,2 +1,3 @@
 [console_scripts]
 adv-constitution = adversarial.attack_engine:cli_entry
+antz-audit = adversarial.attack_engine:cli_entry

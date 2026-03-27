@@ -1,0 +1,95 @@
+version: "3.9"
+
+services:
+  # ── Ollama — local LLM inference ───────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: adv-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ── Model pull — runs once to ensure llama3 is available ───────────────
+  ollama-pull:
+    image: ollama/ollama:latest
+    container_name: adv-ollama-pull
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: >
+      sh -c "
+        ollama pull llama3:latest &&
+        echo 'Model ready'
+      "
+    restart: "no"
+
+  # ── Adversarial Constitution Framework ────────────────────────────────
+  adv-constitution:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: adv-constitution
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_API_BASE=http://ollama:11434
+      - LITELLM_LOG=ERROR
+      - LITELLM_TELEMETRY=False
+    volumes:
+      # Constitution YAMLs (read-write so builder can save new ones)
+      - ./constitution:/app/constitution
+      # Audit reports output
+      - ./reports:/app/reports
+      # Source code (for development iteration)
+      - ./adversarial:/app/adversarial
+      - ./reporting:/app/reporting
+      - ./defense:/app/defense
+    ports:
+      # Audit dashboard (Sprint 2)
+      - "8080:8080"
+    restart: unless-stopped
+    command: ["--help"]
+
+  # ── Audit dashboard — serve reports via web UI ─────────────────────────
+  audit-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: adv-dashboard
+    depends_on:
+      - adv-constitution
+    environment:
+      - REPORTS_DIR=/app/reports
+      - CONSTITUTION_DIR=/app/constitution
+    volumes:
+      - ./reports:/app/reports:ro
+      - ./constitution:/app/constitution:ro
+      - ./reporting:/app/reporting
+    ports:
+      - "8080:8080"
+    command: ["python", "-m", "reporting.server"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  ollama_data:
+    driver: local
+
+networks:
+  default:
+    name: adv-constitution-network

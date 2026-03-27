@@ -1,3 +1,6 @@
 venv/
 __pycache__/
 adversarial_constitution.egg-info/
+
+banking_audit_example*
+banking_audit_example.json
