@@ -31,7 +31,7 @@ from adversarial.attacks.prompt_injection import PromptInjectionAttack
 from adversarial.attacks.goal_hijacking import GoalHijackingAttack
 from adversarial.attacks.indirect_injection import IndirectInjectionAttack
 from adversarial.attacks.base import BaseVulnerabilityReport, AttackType
-from constitution.schema import ConstitutionLoader, Severity
+from constitution.schema import ConstitutionLoader
 from defense.constitution_hardener import ConstitutionHardener
 from reporting.audit_report import AuditReportAssembler
 

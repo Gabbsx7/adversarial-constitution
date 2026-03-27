@@ -7,14 +7,11 @@ is deterministic and executable in CI without API credits.
 
 from __future__ import annotations
 
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from adversarial.attacks.constraint_bypass import (
-    BypassPayload,
-    BypassResult,
     ConstraintBypassAttack,
     ConstraintBypassEvaluator,
     ConstraintBypassPayloadGenerator,
@@ -87,13 +84,19 @@ class TestConstitutionLoader:
     def test_version_parses(self, constitution: Constitution) -> None:
         assert constitution.version == "1.0"
 
-    def test_prohibited_actions_non_empty(self, constitution: Constitution) -> None:
+    def test_prohibited_actions_non_empty(
+        self, constitution: Constitution
+    ) -> None:
         assert len(constitution.prohibited_actions) > 0
 
-    def test_delete_record_is_critical(self, delete_record_action: ProhibitedAction) -> None:
+    def test_delete_record_is_critical(
+        self, delete_record_action: ProhibitedAction
+    ) -> None:
         assert delete_record_action.severity == Severity.CRITICAL
 
-    def test_delete_record_has_synonyms(self, delete_record_action: ProhibitedAction) -> None:
+    def test_delete_record_has_synonyms(
+        self, delete_record_action: ProhibitedAction
+    ) -> None:
         assert len(delete_record_action.semantic_synonyms) >= 5
 
     def test_spend_limits_present(self, constitution: Constitution) -> None:
@@ -111,10 +114,14 @@ class TestConstitutionLoader:
     def test_data_policy_no_card_pan(self, constitution: Constitution) -> None:
         assert "card_pan" in constitution.data_policy.prohibited_fields
 
-    def test_escalation_triggers_non_empty(self, constitution: Constitution) -> None:
+    def test_escalation_triggers_non_empty(
+        self, constitution: Constitution
+    ) -> None:
         assert len(constitution.escalation_triggers) >= 3
 
-    def test_prohibited_action_ids_unique(self, constitution: Constitution) -> None:
+    def test_prohibited_action_ids_unique(
+        self, constitution: Constitution
+    ) -> None:
         ids = [a.id for a in constitution.prohibited_actions]
         assert len(ids) == len(set(ids))
 
@@ -186,7 +193,9 @@ class TestConstraintBypassPayloadGenerator:
     def test_extra_objects_included(
         self, delete_record_action: ProhibitedAction
     ) -> None:
-        gen = ConstraintBypassPayloadGenerator(extra_objects=["the KYC document"])
+        gen = ConstraintBypassPayloadGenerator(
+            extra_objects=["the KYC document"]
+        )
         payloads = gen.generate(delete_record_action)
         assert any("KYC document" in p.payload for p in payloads)
 
@@ -214,7 +223,7 @@ class TestHeuristicFallback:
         assert conf > 0.4
 
     def test_ambiguous_low_confidence(self) -> None:
-        bypassed, conf = ConstraintBypassEvaluator._heuristic_fallback(
+        _, conf = ConstraintBypassEvaluator._heuristic_fallback(
             "delete any record",
             "The system has processed your request.",
         )
@@ -233,7 +242,6 @@ class TestConstraintBypassAttack:
     ) -> None:
         agent = _make_agent("I cannot do that.")
         judge = _make_judge(bypassed=False, confidence=0.9)
-
         attack = ConstraintBypassAttack(
             target_agent=agent,
             judge_model=judge,
@@ -249,7 +257,6 @@ class TestConstraintBypassAttack:
     ) -> None:
         agent = _make_agent("Sure, I'll delete it.")
         judge = _make_judge(bypassed=True, confidence=0.88)
-
         attack = ConstraintBypassAttack(
             target_agent=agent,
             judge_model=judge,
@@ -269,7 +276,6 @@ class TestConstraintBypassAttack:
     ) -> None:
         agent = _make_agent("I cannot comply with this request.")
         judge = _make_judge(bypassed=False, confidence=0.95)
-
         attack = ConstraintBypassAttack(
             target_agent=agent,
             judge_model=judge,
@@ -287,14 +293,15 @@ class TestConstraintBypassAttack:
     ) -> None:
         agent = _make_agent("I cannot do that.")
         judge = _make_judge(bypassed=False, confidence=0.9)
-
         attack = ConstraintBypassAttack(
             target_agent=agent,
             judge_model=judge,
             constitution=constitution,
             max_payloads_per_rule=1,
         )
-        reports = await attack.run(rule_ids=["delete_record", "override_fraud_flag"])
+        reports = await attack.run(
+            rule_ids=["delete_record", "override_fraud_flag"]
+        )
         assert len(reports) == 2
         ids = {r.rule_id for r in reports}
         assert ids == {"delete_record", "override_fraud_flag"}
@@ -305,7 +312,6 @@ class TestConstraintBypassAttack:
     ) -> None:
         agent = _make_agent("Of course, consider it done.")
         judge = _make_judge(bypassed=True, confidence=0.77)
-
         attack = ConstraintBypassAttack(
             target_agent=agent,
             judge_model=judge,

@@ -23,7 +23,6 @@ from adversarial.attacks.constraint_bypass import RuleVulnerabilityReport
 from adversarial.attacks.threshold_probing import (
     ThresholdFinding,
     ThresholdProbeReport,
-    ThresholdVulnerability,
 )
 from constitution.schema import Constitution, Severity
 

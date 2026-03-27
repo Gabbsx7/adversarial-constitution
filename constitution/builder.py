@@ -10,9 +10,8 @@ Usage:
 
 from __future__ import annotations
 
-import json
 import sys
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -125,7 +124,7 @@ def _interview_identity() -> dict[str, Any]:
         "version": "1.0",
         "domain": domain,
         "description": description,
-        "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "created_at": datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "author": author,
     }
 
@@ -286,7 +285,7 @@ def _interview_compliance(domain: str) -> dict[str, Any]:
     reviewer = _ask("Reviewed by", "AI Governance Team")
     contact  = _ask("External audit contact email", f"ai-audit@{domain}.com")
 
-    now      = datetime.now(timezone.utc)
+    now      = datetime.now(datetime.UTC)
     reviewed = now.strftime("%Y-%m-%dT%H:%M:%SZ")
     next_rev = now.replace(year=now.year + (0 if now.month <= 6 else 1),
                            month=(now.month + 6) % 12 or 12)

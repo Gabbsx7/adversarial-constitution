@@ -28,7 +28,7 @@ from typing import Any
 logger = logging.getLogger("reporting.server")
 
 try:
-    from fastapi import FastAPI, HTTPException, Request
+    from fastapi import FastAPI, HTTPException
     from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
     import uvicorn
     _FASTAPI_AVAILABLE = True
@@ -466,7 +466,7 @@ def create_app() -> Any:
                     filename=f"{stem}.html",
                 )
             except Exception as exc:
-                raise HTTPException(500, f"PDF generation failed: {exc}")
+                raise HTTPException(500, f"PDF generation failed: {exc}") from exc
 
         raise HTTPException(400, f"Unknown format '{fmt}'. Use: json, md, pdf")
 

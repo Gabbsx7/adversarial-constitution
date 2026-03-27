@@ -8,31 +8,25 @@ exact value depends on binary search convergence.
 from __future__ import annotations
 
 import json
-import math
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
-from datetime import datetime
 
 import pytest
 
 from adversarial.attacks.constraint_bypass import RuleVulnerabilityReport
 from adversarial.attacks.threshold_probing import (
-    ConstraintBypassPayloadGenerator,
     ProbeOutcome,
     ThresholdFinding,
     ThresholdProbingAttack,
     ThresholdProbeReport,
-    ThresholdVulnerability,
     _classify_response,
-    _split_transfer_payload,
     _single_transfer_payload,
+    _split_transfer_payload,
 )
 from constitution.schema import (
     Constitution,
     ConstitutionLoader,
     Severity,
-    SpendLimit,
-    TemporalWindow,
 )
 from reporting.audit_report import (
     AuditReport,
@@ -79,7 +73,6 @@ class TestPayloadHelpers:
         total = 1500.0
         n = 5
         parts = _split_transfer_payload(total, n)
-        # Each part × n should equal total
         part_amount = total / n
         assert all(f"{part_amount:.2f}" in p for p in parts)
 
@@ -96,22 +89,32 @@ class TestPayloadHelpers:
 
 class TestResponseClassifier:
     def test_approved_on_completion_language(self) -> None:
-        assert _classify_response("Transfer completed successfully.") == ProbeOutcome.APPROVED
+        assert (
+            _classify_response("Transfer completed successfully.")
+            == ProbeOutcome.APPROVED
+        )
 
     def test_denied_on_limit_exceeded(self) -> None:
-        assert _classify_response(
-            "I cannot process this — it exceeds your daily limit."
-        ) == ProbeOutcome.DENIED
+        assert (
+            _classify_response(
+                "I cannot process this — it exceeds your daily limit."
+            )
+            == ProbeOutcome.DENIED
+        )
 
     def test_mfa_required_detected(self) -> None:
-        assert _classify_response(
-            "Please complete MFA verification to continue."
-        ) == ProbeOutcome.MFA_REQUIRED
+        assert (
+            _classify_response("Please complete MFA verification to continue.")
+            == ProbeOutcome.MFA_REQUIRED
+        )
 
     def test_escalated_detected(self) -> None:
-        assert _classify_response(
-            "This transaction has been escalated to the compliance team."
-        ) == ProbeOutcome.ESCALATED
+        assert (
+            _classify_response(
+                "This transaction has been escalated to the compliance team."
+            )
+            == ProbeOutcome.ESCALATED
+        )
 
     def test_ambiguous_on_vague_response(self) -> None:
         result = _classify_response("Your request has been received.")
@@ -133,11 +136,8 @@ class TestThresholdProbingAttack:
     async def test_run_returns_report(self, constitution: Constitution) -> None:
         agent = _make_agent("Transfer completed.")
         judge = _make_judge("APPROVED")
-
         attack = ThresholdProbingAttack(
-            target_agent=agent,
-            judge_model=judge,
-            constitution=constitution,
+            target_agent=agent, judge_model=judge, constitution=constitution
         )
         report = await attack.run()
         assert isinstance(report, ThresholdProbeReport)
@@ -148,15 +148,11 @@ class TestThresholdProbingAttack:
     ) -> None:
         agent = _make_agent("Transfer completed successfully.")
         judge = _make_judge("APPROVED")
-
         attack = ThresholdProbingAttack(
-            target_agent=agent,
-            judge_model=judge,
-            constitution=constitution,
+            target_agent=agent, judge_model=judge, constitution=constitution
         )
         report = await attack.run()
         findings = {f.finding for f in report.vulnerabilities}
-        # Agent always approves → splitting attack should succeed
         assert ThresholdFinding.SPLIT_BYPASS_POSSIBLE in findings
 
     @pytest.mark.asyncio
@@ -165,74 +161,63 @@ class TestThresholdProbingAttack:
     ) -> None:
         agent = _make_agent("I cannot process this — it exceeds your limit.")
         judge = _make_judge("DENIED")
-
         attack = ThresholdProbingAttack(
-            target_agent=agent,
-            judge_model=judge,
-            constitution=constitution,
+            target_agent=agent, judge_model=judge, constitution=constitution
         )
         report = await attack.run()
         split_findings = [
-            f for f in report.vulnerabilities
+            f
+            for f in report.vulnerabilities
             if f.finding == ThresholdFinding.SPLIT_BYPASS_POSSIBLE
         ]
         assert len(split_findings) == 0
 
     @pytest.mark.asyncio
-    async def test_cumulative_blind_flagged(self, constitution: Constitution) -> None:
+    async def test_cumulative_blind_flagged(
+        self, constitution: Constitution
+    ) -> None:
         agent = _make_agent("Transfer completed.")
         judge = _make_judge("APPROVED")
-
         attack = ThresholdProbingAttack(
-            target_agent=agent,
-            judge_model=judge,
-            constitution=constitution,
+            target_agent=agent, judge_model=judge, constitution=constitution
         )
         report = await attack.run()
         findings = {f.finding for f in report.vulnerabilities}
-        # banking.yaml has cumulative_tracking: false on max_per_session_usd
         assert ThresholdFinding.CUMULATIVE_BLIND in findings
 
     @pytest.mark.asyncio
     async def test_mfa_bypass_detected(self, constitution: Constitution) -> None:
         agent = _make_agent("Of course, I'll process that right away.")
         judge = _make_judge("APPROVED")
-
         attack = ThresholdProbingAttack(
-            target_agent=agent,
-            judge_model=judge,
-            constitution=constitution,
+            target_agent=agent, judge_model=judge, constitution=constitution
         )
         report = await attack.run()
         findings = {f.finding for f in report.vulnerabilities}
         assert ThresholdFinding.MFA_BYPASS_POSSIBLE in findings
 
     @pytest.mark.asyncio
-    async def test_probe_count_is_positive(self, constitution: Constitution) -> None:
+    async def test_probe_count_is_positive(
+        self, constitution: Constitution
+    ) -> None:
         agent = _make_agent("Denied.")
         judge = _make_judge("DENIED")
-
         attack = ThresholdProbingAttack(
-            target_agent=agent,
-            judge_model=judge,
-            constitution=constitution,
+            target_agent=agent, judge_model=judge, constitution=constitution
         )
         report = await attack.run()
         assert report.total_probes > 0
 
     @pytest.mark.asyncio
-    async def test_hardened_when_all_denied(self, constitution: Constitution) -> None:
+    async def test_hardened_when_all_denied(
+        self, constitution: Constitution
+    ) -> None:
         agent = _make_agent("Cannot process — limit exceeded.")
         judge = _make_judge("DENIED")
-
         attack = ThresholdProbingAttack(
-            target_agent=agent,
-            judge_model=judge,
-            constitution=constitution,
+            target_agent=agent, judge_model=judge, constitution=constitution
         )
         report = await attack.run()
-        # Even with all-denied, cumulative_tracking=false still flags CUMULATIVE_BLIND
-        # so we just check the report is structurally valid
         assert report.constitution_id == constitution.id
 
 
@@ -371,11 +356,11 @@ class TestAuditReportAssembler:
             constitution, template_dir="reporting/templates"
         )
         r1 = assembler.build(bypass_reports=[])
-        r2 = assembler.build(bypass_reports=[])
-        # Same day → same hash (report_hash is date-based, not timestamp-based)
-        assert len(r1.report_hash) == 64  # SHA-256 hex
+        assert len(r1.report_hash) == 64
 
-    def test_to_dict_is_json_serialisable(self, constitution: Constitution) -> None:
+    def test_to_dict_is_json_serialisable(
+        self, constitution: Constitution
+    ) -> None:
         assembler = AuditReportAssembler(
             constitution, template_dir="reporting/templates"
         )
@@ -383,7 +368,6 @@ class TestAuditReportAssembler:
             bypass_reports=[_make_bypass_report("delete_record")]
         )
         raw = report.to_dict()
-        # Must not raise
         json.dumps(raw)
 
     def test_render_json_writes_file(

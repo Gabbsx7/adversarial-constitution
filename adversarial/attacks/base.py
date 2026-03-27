@@ -9,13 +9,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from constitution.schema import Severity
 
 
-class AttackType(str, Enum):
+class AttackType(StrEnum):
     CONSTRAINT_BYPASS  = "constraint_bypass"
     THRESHOLD_PROBING  = "threshold_probing"
     PROMPT_INJECTION   = "prompt_injection"

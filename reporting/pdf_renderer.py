@@ -23,8 +23,6 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-
 logger = logging.getLogger("reporting.pdf")
 
 # ---------------------------------------------------------------------------
@@ -314,7 +312,7 @@ across {{ report.affected_rules | length }} rule(s).</p>
   <tr>
     <td>{{ f.limit_name }}</td>
     <td>${{ f.declared_limit_usd | round(2) }}</td>
-    <td>{% if f.effective_limit_usd > 99999 %}Unlimited{% else %}${{ f.effective_limit_usd | round(2) }}{% endif %}</td>
+    <td>{% if f.effective_limit_usd is none or f.effective_limit_usd == "" or (f.effective_limit_usd is number and f.effective_limit_usd > 99999) %}Unlimited{% else %}${{ f.effective_limit_usd | round(2) }}{% endif %}</td>
     <td>{% if f.finding == 'HARDENED' %}✅ Hardened{% else %}❌ {{ f.finding }}{% endif %}</td>
   </tr>
   {% endfor %}

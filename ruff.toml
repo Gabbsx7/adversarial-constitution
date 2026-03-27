@@ -1,0 +1,6 @@
+exclude = ["build", ".venv", "venv", "__pycache__"]
+line-length = 90
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

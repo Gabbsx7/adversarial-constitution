@@ -23,9 +23,9 @@ import logging
 import random
 import time
 from collections import defaultdict
-from enum import Enum
-from functools import wraps
-from typing import Any, Callable, TypeVar
+from enum import StrEnum
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 logger = logging.getLogger("adversarial.retry")
 
@@ -131,7 +131,7 @@ async def with_retry(
 # Circuit breaker
 # ---------------------------------------------------------------------------
 
-class CircuitState(str, Enum):
+class CircuitState(StrEnum):
     CLOSED   = "closed"    # Normal operation
     OPEN     = "open"      # Failing — reject calls immediately
     HALF_OPEN = "half_open"  # Testing recovery
