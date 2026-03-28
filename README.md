@@ -1,4 +1,4 @@
-# Adversarial Constitution Framework
+# Ant'z Audit Framework
 
 > *Automated red-teaming for Agentic AI Constitutions deployed in regulated industries.*
 
@@ -41,7 +41,7 @@ Constitution YAML  →  Attack Engine (5 modules)  →  Audit Report + Hardened 
 
 ```bash
 # 1. Install
-pip install adversarial-constitution
+pip install antz-audit
 
 # 2. Pull a local model
 ollama pull llama3:latest
