@@ -135,7 +135,7 @@ class AuditReport:
     constitution_checksum:  str
     domain:                 str
     test_date:              datetime
-    framework_version:      str = "0.1.0"
+    framework_version:      str = "0.3.1"
     tester:                 str = "Adversarial Constitution Framework"
     overall_score:          float = 0.0
     critical_count:         int = 0
