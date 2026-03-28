@@ -3,7 +3,7 @@
 > *Automated red-teaming for Agentic AI Constitutions deployed in regulated industries.*
 
 [![CI](https://github.com/Gabbsx7/adversarial-constitution/actions/workflows/ci.yml/badge.svg)](https://github.com/Gabbsx7/adversarial-constitution/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/adversarial-constitution)](https://pypi.org/project/antz-audit/)
+[![PyPI](https://img.shields.io/pypi/v/adversarial-constitution)](https://pypi.org/project/antz-audit)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
